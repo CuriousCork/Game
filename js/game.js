@@ -4,10 +4,11 @@ class Game {
         this.ctx = context;
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+        this.player = new Player(this);
     }
     render(){
         this.ctx.fillStyle = 'red';
-        this.ctx.fillRect(100, 100, 50, 150);
+        this.player.draw();
     }
 }
 
