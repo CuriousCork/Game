@@ -6,7 +6,8 @@ class Player {
         this.spritewidth = 200;
         this.spriteheight = 200;
         this.width;
-        this.height; 
+        this.height;
+        this.speedY; 
     }
 
     draw() {
@@ -14,12 +15,21 @@ class Player {
     }
     
     update() {
-        //this.x++;
+        this.y += this.speedY;
+
+        if(this.isTouchingBottom()) {
+            this.y = this.game.height - this.height;
+        }
+        else {
+            this.speedY += this.game.gravity;
+        }
     }
 
 
     resize() {
         this.width = this.spritewidth * this.game.ratio;
         this.height = this.spriteheight * this.game.ratio;
+        this.y = this.game.height * 0.5 - this.height  * 0.5    
+        this.speedY= -8 * this.game.ratio;
     }
 }
