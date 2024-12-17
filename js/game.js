@@ -35,6 +35,8 @@ class Game {
     }
 }
 
+
+
     
 window.addEventListener('load', function(){
     const canvas = this.document.getElementById('game-layout')

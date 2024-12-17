@@ -1,13 +1,14 @@
 class Player {
     constructor(game) {
         this.game = game;
-        this.x = 0;
+        this.x = 20;
         this.y = 0;
         this.spritewidth = 200;
         this.spriteheight = 200;
         this.width;
         this.height;
-        this.speedY; 
+        this.speedY;
+        this.jump; 
     }
 
     draw() {
@@ -29,11 +30,24 @@ class Player {
     resize() {
         this.width = this.spritewidth * this.game.ratio;
         this.height = this.spriteheight * this.game.ratio;
-        this.y = this.game.height * 0.5 - this.height  * 0.5    
+        this.y = this.game.height * 0.5 - this.height  * 0.5;
         this.speedY= -8 * this.game.ratio;
     }
 
     isTouchingBottom(){
         return this.y >= this.game.height - this.height;
     }
+
+   
+
+    jump() {
+        if (this.y > 0) {
+            this.speedY = this.jump * this.game.ratio;
+        }
+    }
+
+    
 }
+
+
+
