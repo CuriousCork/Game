@@ -8,7 +8,8 @@ class Player {
         this.width;
         this.height;
         this.speedY;
-        this.jump; 
+        this.jump;
+        this.flapspeed; 
     }
 
     draw() {
@@ -31,23 +32,25 @@ class Player {
         this.width = this.spritewidth * this.game.ratio;
         this.height = this.spriteheight * this.game.ratio;
         this.y = this.game.height * 0.5 - this.height  * 0.5;
-        this.speedY= -8 * this.game.ratio;
+        this.speedY = -8 * this.game.ratio;
+        this.flapSpeed = 6 *this.game.ratio;
     }
 
     isTouchingBottom(){
         return this.y >= this.game.height - this.height;
     }
 
+    isTouchingTop(){
+        return this.y <= 0;
+    }
+
    
 
-    jump() {
-        if (this.y > 0) {
-            this.speedY = this.jump * this.game.ratio;
+    flap() {
+        if(!this.isTouchingTop()) {
+        this.speedY = -this.flapSpeed;
         }
     }
 
     
 }
-
-
-

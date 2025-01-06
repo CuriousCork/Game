@@ -15,6 +15,11 @@ class Game {
             console.log(e);
             this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
         });
+
+        window.addEventListener('mousedown',e =>{
+            this.player.flap();
+            
+        });
     }
 
     resize(width,height)    {
