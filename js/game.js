@@ -20,6 +20,10 @@ class Game {
             this.player.flap();
             
         });
+
+        this.canvas.addEventListener('touchstart',e =>{
+            this.player.flap();
+        });
     }
 
     resize(width,height)    {
