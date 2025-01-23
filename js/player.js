@@ -9,21 +9,30 @@ class Player {
         this.height;    
         this.speedY;
         this.flapSpeed;
+        this.collisionX;  
+        this.collisionY;   
+        this.collisionRadius;   
+        this.collided;   
     }
 
     draw() {
         this.game.ctx.fillRect(this.x, this.y, this.width, this.height);
+        this.game.ctx.beginPath();  
+        this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);   
+        this.game.ctx.stroke(); 
     }
 
     update() {
         this.y += this.speedY;
 
-        if(this.isTouchingBottom())    {
-            this.y = this.game.height - this.height;
-        }
-        else    {
+        if(this.isTouchingBottom() && !this.charging)    {
             this.speedY += this.game.gravity;
         }
+        else    {
+            this.speedY = 0; 
+        }
+
+        this.collisionY = this.y + this.height * 0.5;   
     }
 
     resize() {
@@ -32,6 +41,14 @@ class Player {
         this.y = this.game.height * 0.5 - this.height * 0.5;
         this.speedY = -8 * this.game.ratio;
         this.flapSpeed = 6 * this.game.ratio;
+        this.collisionX = this.x + this.width * 0.5;   
+        this.collisionRadius = this.width * 0.5;   
+        this.collided = false;   
+        this.energy = 30;
+        this.maxEnergy = this.energy * 2;
+        this.minEnergy = 15;
+        this.charging;
+        this.barSize = Math.floor(5 * this.game.ratio);
     }
 
     isTouchingBottom()  {
@@ -43,8 +60,35 @@ class Player {
     }
 
     flap()  {
+        this.stopCharge();
+
         if(!this.isTouchingTop())    {
             this.speedY = -this.flapSpeed;
         }
+    }
+    
+    handleEnergy() {
+        if(this.energy < this.maxEnergy) {
+            this.energy += 0.1;
+        }
+        
+        if(this.charging) {
+            this.energy -=1;
+
+            if(this.energy <= 0) {
+                this.energy = 0;
+                this.stopCharge();
+            }
+        }
+
+        
+    }
+
+    startCharge() {
+        this.charging = true;
+    }
+
+    stopCharge(){
+        this.charging = false;
     }
 }

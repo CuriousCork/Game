@@ -14,6 +14,16 @@ class Game {
         this.speed;
         this.score;
         this.gameOver;
+        this.timer;
+        this.message1;
+        this.message2;
+        this.minSpeed;
+        this.maxSpeed;
+        this.eventTimer = 0;
+        this.eventInterval = 150;
+        this.eventUpdate = false;
+        this.touchStarX;
+        this.swipeDistance = 50;
 
         this.resize(window.innerWidth, window.innerHeight);
 
@@ -28,7 +38,7 @@ class Game {
 
         // Keyboard controls
         window.addEventListener('keydown', e => {
-            if ((e.key === ' ') || (e.key === 'Enter')) {
+            if((e.key === ' ') || (e.key === 'Enter'))  {
                 this.player.flap();
             }
         });
@@ -36,17 +46,27 @@ class Game {
         // Touch controls
         this.canvas.addEventListener('touchstart', e => {
             this.player.flap();
+            this.touchStarX = e.changedTouches[0].pageX;
         });
+
+        this.canvas.addEventListener('touchmove', e =>{
+            if(e.changedTouches[0].pageX - this.touchStarX > this.swipeDistance) {
+                this.player.startCharge();
+            }
+        });
+        
     }
 
-    resize(width, height) {
+    resize(width, height)    {
         this.canvas.width = width;
         this.canvas.height = height;
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.ctx.fillStyle = '#5995F2';
-        this.ctx.font = '40px Playfair';
+        this.ctx.font = '15px Bungee';
         this.ctx.textAlign = 'right';
+        this.ctx.lineWidth = 3;   //Collision
+        this.ctx.strokeStyle = 'white';   //Collision
         this.ratio = this.height / this.baseHeight;
 
         this.gravity = 0.15 * this.ratio;
@@ -60,71 +80,76 @@ class Game {
 
         this.score = 0;
         this.gameOver = false;
+        this.timer = 0;
     }
 
-    render() {
-        if (this.gameOver) return;
-
+    render(deltaTime) {
+        console.log(deltaTime);
+        if(!this.gameOver) this.timer += deltaTime;
         this.background.update();
         this.background.draw();
-        this.player.update();
         this.drawStatusText();
+        this.player.update();
         this.player.draw();
         this.obstacles.forEach(obstacle => {
             obstacle.update();
             obstacle.draw();
         });
-
-        this.checkCollision();
     }
 
-    createObstacles() {
+    createObstacles()   {
         this.obstacles = [];
         const firstX = this.baseHeight * this.ratio;
         const obstacleSpacing = 600 * this.ratio;
 
-        for (let i = 0; i < this.numberOfObstacles; i++) {
+        for(let i = 0; i < this.numberOfObstacles; i++)   {
             this.obstacles.push(new Obstacle(this, firstX + i * obstacleSpacing));
         }
     }
 
-    drawStatusText() {
+    formatTimer()   {
+        return (this.timer * 0.001).toFixed(1);
+    }
+
+    drawStatusText()    {
         this.ctx.save();
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.fillText('Score: ' + this.score, this.width - 10, 30);
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('Timer: ' + this.formatTimer(), 10, 30);
+        
+        if(this.gameOver) {
+            if(this.player.collided)    {  //Win or Lose
+                this.message1 = "Getting rusty?";  //Win or Lose
+                this.message2 = "Collison time " + this.formatTimer() + " seconds!";  //Win or Lose
+            }  //Win or Lose
+            else    {  //Win or Lose
+                this.message1 = "Nailed it!";  //Win or Lose
+                this.message2 = "Can you do it faster than " + this.formatTimer() + " seconds?";  //Win or Lose
+            }  //Win or Lose
+
+            this.ctx.font = '30px Bungee';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(this.message1, this.width * 0.5, this.height * 0.5 - 40);  //Win or Lose
+            this.ctx.font = '15px Bungee';  //Win or Lose
+            this.ctx.fillText(this.message2, this.width * 0.5, this.height * 0.5 - 20);  //Win or Lose
+            this.ctx.fillText("Press 'R' to try again!", this.width * 0.5, this.height * 0.5);  //Win or Lose
+        }
+
         this.ctx.restore();
     }
 
-    checkCollision() {
-        const playerBox = {
-            x: this.player.x,
-            y: this.player.y,
-            width: this.player.width,
-            height: this.player.height
-        };
-
-        for (let obstacle of this.obstacles) {
-            const obstacleBox = {
-                x: obstacle.x,
-                y: obstacle.y,
-                width: obstacle.width,
-                height: obstacle.height
-            };
-
-            if (
-                playerBox.x < obstacleBox.x + obstacleBox.width &&
-                playerBox.x + playerBox.width > obstacleBox.x &&
-                playerBox.y < obstacleBox.y + obstacleBox.height &&
-                playerBox.y + playerBox.height > obstacleBox.y
-            ) {
-                this.gameOver = true;
-                return;
-            }
-        }
+    checkCollision(a, b)    {   //Collision
+        const dx = a.collisionX - b.collisionX;   //Collision
+        const dy = a.collisionY - b.collisionY;   //Collision
+        const distance = Math.sqrt(dx * dx + dy * dy);   //Collision
+        //const distance = Math.hypot(dx, dy);   //Collision
+        const sumOfRadii = a.collisionRadius + b.collisionRadius;   //Collision
+        return distance <= sumOfRadii;   //Collision
     }
 }
 
-window.addEventListener('load', function () {
+window.addEventListener('load', function() {
     const canvas = document.getElementById('game-layout');
     const ctx = canvas.getContext('2d');
     canvas.width = 720;
@@ -132,10 +157,13 @@ window.addEventListener('load', function () {
 
     const game = new Game(canvas, ctx);
 
-    function animate() {
+    let lastTime = 0;
+    function animate(timeStamp) {
+        const deltaTime = timeStamp - lastTime;
+        lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        game.render();
-        if (!game.gameOver) requestAnimationFrame(animate);
+        game.render(deltaTime);
+        requestAnimationFrame(animate);
     }
 
     requestAnimationFrame(animate);
